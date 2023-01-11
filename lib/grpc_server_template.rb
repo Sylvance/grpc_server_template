@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "grpc_server_template/version"
+Dir[File.join(__dir__, "grpc_server_template", "*.rb")].sort.each { |file| require file }
 
 module GrpcServerTemplate
   class Error < StandardError; end
