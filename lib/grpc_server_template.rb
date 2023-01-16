@@ -4,5 +4,4 @@ Dir[File.join(__dir__, "grpc_server_template", "*.rb")].sort.each { |file| requi
 
 module GrpcServerTemplate
   class Error < StandardError; end
-  # Your code goes here...
 end

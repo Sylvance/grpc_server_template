@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+set -vx
+
+pwd
+
+grpc_tools_ruby_protoc -Iprotos --ruby_out=lib/grpc_server_template --grpc_out=lib/grpc_server_template protos/grpc_server_template.proto
+
+mv lib/grpc_server_template/grpc_server_template_pb.rb lib/grpc_server_template/messages.rb
+mv lib/grpc_server_template/grpc_server_template_services_pb.rb lib/grpc_server_template/service.rb
+
+target_filename="lib/grpc_server_template/service.rb"
+
+s_variable="require 'grpc_server_template_pb'"
+r_variable="require_relative 'messages'"
+
+echo "[Search and replace] On $target_filename."
+if [[ $s_variable != "" && $r_variable != "" ]]; then
+  sed -i'' -e "s/$s_variable/$r_variable/" $target_filename
+fi
+
+s_klass_variable=", ::"
+r_klass_variable=", GrpcServerTemplate::Messages::"
+
+echo "[Search and replace] On $target_filename."
+if [[ $s_klass_variable != "" && $r_klass_variable != "" ]]; then
+  sed -i'' -e "s/$s_klass_variable/$r_klass_variable/g" $target_filename
+fi
+
+rm -rf lib/grpc_server_template/service.rb-e
+
+grep '::Google::Protobuf::DescriptorPool\.generated_pool\.lookup' lib/grpc_server_template/messages.rb | sed 's/^/  /' | sed 's/^/  /' > lib/grpc_server_template/output.rb
+echo -e "module GrpcServerTemplate\n  # Messages\n  class Messages\n$(cat lib/grpc_server_template/output.rb)\n  end\nend" > lib/grpc_server_template/output.rb
+
+target_filename="lib/grpc_server_template/messages.rb"
+grep -v "::Google::Protobuf::DescriptorPool.generated_pool.lookup" $target_filename > temp
+mv temp $target_filename
+
+cat lib/grpc_server_template/output.rb >> lib/grpc_server_template/messages.rb
+rm -rf lib/grpc_server_template/output.rb
+
+code="# frozen_string_literal: true
+
+require_relative 'messages'
+require_relative 'service'
+
+module GrpcServerTemplate
+  # Handler
+  class Handler < GrpcServerTemplate::Service
+    def say_hello(hello_req, _unused_call)
+      puts \"Request: #{hello_req}\"
+      GrpcServerTemplate::Messages::HelloReply.new(message: \"Hello #{hello_req.name}\")
+    end
+  end
+end"
+
+echo "$code" > lib/grpc_server_template/handler.rb
+
+code="# frozen_string_literal: true
+
+require_relative 'handler'
+
+module GrpcServerTemplate
+  # Server
+  class Server
+    class << self
+      def start(port: 50052)
+        @server = GRPC::RpcServer.new
+        @server.add_http2_port(\"0.0.0.0:#{port}\", :this_port_is_insecure)
+        @server.handle(GrpcServerTemplate::Handler)
+        @server.run_till_terminated
+      end
+    end
+  end
+end
+"
+
+echo "$code" > lib/grpc_server_template/server.rb
+
+code="# frozen_string_literal: true
+
+require_relative 'messages'
+require_relative 'service'
+
+module GrpcServerTemplate
+  # Client
+  class Client
+    class << self
+      def say_hello(name: \"server\")
+        stub = GrpcServerTemplate::Stub.new('0.0.0.0:50052', :this_channel_is_insecure)
+        req = GrpcServerTemplate::Messages::HelloRequest.new(name: name)
+        resp_obj = stub.say_hello(req)
+        puts \"Response: #{resp_obj}\"
+      end
+    end
+  end
+end
+"
+
+echo "$code" > lib/grpc_server_template/client.rb

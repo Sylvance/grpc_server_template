@@ -1,15 +1,23 @@
 # frozen_string_literal: true
 
 require "thor"
-require "fileutils"
-require "erb"
 
 module GrpcServerTemplate
   # Cli class
   class Cli < Thor
-    desc "create PROJECT_NAME", "Creates a new gRPC Ruby server project with the given name"
-    def create(project_name)
-      system("echo 'Hello world #{project_name}'")
+    desc "build", "Build gRPC from proto file"
+    def build
+      system("bin/build")
+    end
+
+    desc "client", "runs the client"
+    def client
+      system("bin/client")
+    end
+
+    desc "server", "runs the server"
+    def server
+      system("bin/server")
     end
   end
 end
