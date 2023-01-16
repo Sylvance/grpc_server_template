@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative 'messages'
-require_relative 'service'
+require_relative "messages"
+require_relative "service"
 
 module GrpcServerTemplate
   # Handler
