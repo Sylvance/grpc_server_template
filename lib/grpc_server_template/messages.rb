@@ -6,7 +6,7 @@
 require "google/protobuf"
 
 Google::Protobuf::DescriptorPool.generated_pool.build do
-  add_file("grpc_server_template.proto", syntax: :proto3) do
+  add_file("grpc_server_template.proto", :syntax => :proto3) do
     add_message "HelloRequest" do
       optional :name, :string, 1
     end

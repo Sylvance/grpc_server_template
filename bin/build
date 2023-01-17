@@ -12,7 +12,7 @@ mv lib/grpc_server_template/grpc_server_template_services_pb.rb lib/grpc_server_
 
 target_filename="lib/grpc_server_template/service.rb"
 
-s_variable="require \"grpc_server_template_pb\""
+s_variable="require 'grpc_server_template_pb'"
 r_variable="require_relative \"messages\""
 
 echo "[Search and replace] On $target_filename."
@@ -30,6 +30,8 @@ fi
 
 rm -rf lib/grpc_server_template/service.rb-e
 
+echo -e "# frozen_string_literal: true\n\n$(cat lib/grpc_server_template/service.rb)" > lib/grpc_server_template/service.rb
+
 grep '::Google::Protobuf::DescriptorPool\.generated_pool\.lookup' lib/grpc_server_template/messages.rb | sed 's/^/  /' | sed 's/^/  /' > lib/grpc_server_template/output.rb
 echo -e "module GrpcServerTemplate\n  # Messages\n  class Messages\n$(cat lib/grpc_server_template/output.rb)\n  end\nend" > lib/grpc_server_template/output.rb
 
@@ -37,8 +39,18 @@ target_filename="lib/grpc_server_template/messages.rb"
 grep -v "::Google::Protobuf::DescriptorPool.generated_pool.lookup" $target_filename > temp
 mv temp $target_filename
 
-cat lib/grpc_server_template/output.rb >> lib/grpc_server_template/messages.rb
+echo -e "# frozen_string_literal: true\n\n$(cat lib/grpc_server_template/messages.rb)\n\n$(cat lib/grpc_server_template/output.rb)" > lib/grpc_server_template/messages.rb
 rm -rf lib/grpc_server_template/output.rb
+
+replace_quotes() {
+  file=$1
+  cp $file "$file.bak"
+  perl -pi -e "s/\'/\"/g" $file
+  rm -rf "$file.bak"
+}
+
+replace_quotes "lib/grpc_server_template/messages.rb"
+replace_quotes "lib/grpc_server_template/service.rb"
 
 code="# frozen_string_literal: true
 
@@ -73,8 +85,7 @@ module GrpcServerTemplate
       end
     end
   end
-end
-"
+end"
 
 echo "$code" > lib/grpc_server_template/server.rb
 
@@ -95,7 +106,6 @@ module GrpcServerTemplate
       end
     end
   end
-end
-"
+end"
 
 echo "$code" > lib/grpc_server_template/client.rb
