@@ -11,7 +11,8 @@ module GrpcServerTemplate
         stub = GrpcServerTemplate::Stub.new("0.0.0.0:50052", :this_channel_is_insecure)
         req = GrpcServerTemplate::Messages::HelloRequest.new(name: name)
         resp_obj = stub.say_hello(req)
-        puts "Response: #{resp_obj}"
+        puts "> Response: #{resp_obj}"
+        resp_obj
       end
     end
   end

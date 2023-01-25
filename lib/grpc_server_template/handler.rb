@@ -7,7 +7,7 @@ module GrpcServerTemplate
   # Handler
   class Handler < GrpcServerTemplate::Service
     def say_hello(hello_req, _unused_call)
-      puts "Request: #{hello_req}"
+      puts "> Request: #{hello_req}"
       GrpcServerTemplate::Messages::HelloReply.new(message: "Hello #{hello_req.name}")
     end
   end

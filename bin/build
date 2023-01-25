@@ -61,7 +61,7 @@ module GrpcServerTemplate
   # Handler
   class Handler < GrpcServerTemplate::Service
     def say_hello(hello_req, _unused_call)
-      puts \"Request: #{hello_req}\"
+      puts \"> Request: #{hello_req}\"
       GrpcServerTemplate::Messages::HelloReply.new(message: \"Hello #{hello_req.name}\")
     end
   end
@@ -102,7 +102,8 @@ module GrpcServerTemplate
         stub = GrpcServerTemplate::Stub.new(\"0.0.0.0:50052\", :this_channel_is_insecure)
         req = GrpcServerTemplate::Messages::HelloRequest.new(name: name)
         resp_obj = stub.say_hello(req)
-        puts \"Response: #{resp_obj}\"
+        puts \"> Response: #{resp_obj}\"
+        resp_obj
       end
     end
   end
