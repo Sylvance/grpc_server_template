@@ -9,7 +9,6 @@ require_relative "messages"
 module GrpcServerTemplate
   # The greeting service definition.
   class Service
-
     include ::GRPC::GenericService
 
     self.marshal_class_method = :encode

@@ -28,7 +28,25 @@ if [[ $s_klass_variable != "" && $r_klass_variable != "" ]]; then
   sed -i'' -e "s/$s_klass_variable/$r_klass_variable/g" $target_filename
 fi
 
+# delete line
+lineNum="$(grep -n "include ::GRPC::GenericService" $target_filename | head -n 1 | cut -d: -f1)"
+let "prevLineNum = $lineNum - 1"
+sed -i.bak -e "${prevLineNum}d" $target_filename
+
 rm -rf lib/grpc_server_template/service.rb-e
+rm -rf lib/grpc_server_template/service.bak
+
+target_filename="lib/grpc_server_template/messages.rb"
+
+s_variable=":syntax => :proto3"
+r_variable="syntax: :proto3"
+
+echo "[Search and replace] On $target_filename."
+if [[ $s_variable != "" && $r_variable != "" ]]; then
+  sed -i'' -e "s/$s_variable/$r_variable/" $target_filename
+fi
+
+rm -rf lib/grpc_server_template/messages.rb-e
 
 echo -e "# frozen_string_literal: true\n\n$(cat lib/grpc_server_template/service.rb)" > lib/grpc_server_template/service.rb
 
